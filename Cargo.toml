@@ -1,0 +1,29 @@
+[package]
+name         = "sema-upgrade"
+version      = "0.1.0"
+edition      = "2024"
+rust-version = "1.85"
+license      = "MIT OR Apache-2.0"
+repository   = "https://github.com/LiGoldragon/sema-upgrade"
+description  = "Runtime prototype for Sema database schema upgrades."
+publish      = false
+
+[lib]
+name = "sema_upgrade"
+path = "src/lib.rs"
+
+[dependencies]
+owner-signal-sema-upgrade = { git = "https://github.com/LiGoldragon/owner-signal-sema-upgrade.git", branch = "main" }
+signal-executor           = { git = "https://github.com/LiGoldragon/signal-executor.git", branch = "main" }
+signal-frame              = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main" }
+signal-sema               = { git = "https://github.com/LiGoldragon/signal-sema.git", branch = "main" }
+signal-sema-upgrade       = { git = "https://github.com/LiGoldragon/signal-sema-upgrade.git", branch = "main" }
+thiserror                 = "2"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }
+
+[lints.rust]
+unsafe_code = "forbid"
+unused      = { level = "warn", priority = -1 }
+dead_code   = "warn"
