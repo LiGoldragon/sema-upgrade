@@ -16,6 +16,9 @@ and the execution path for ordinary upgrade attempts.
 - Supported migrations are selected from a compile-time module index.
 - Database migrations write into a new target database path; the
   migration code never rewrites the source database in place.
+- Atomic handover prototypes use `signal-version-handover` for private
+  upgrade messages and `version-projection` for per-type forward/reverse
+  representation checks.
 - Live migration smoke tests run through Nix apps or checks. The operator
   does not hand-run the copy/migrate/daemon/CLI sequence as an ad-hoc shell
   script.
@@ -45,6 +48,26 @@ maps `Certainty::Maximum | Medium | Minimum` into
 `Magnitude::Maximum | Medium | Minimum`, preserves identifiers and
 daemon-stamped date/time, and asserts the converted records into a fresh
 target database.
+
+## Handover Prototype
+
+`src/handover.rs` is the first testable shape for the private upgrade
+socket protocol. It is intentionally not the production Spirit daemon
+wiring. The module models two versions of the same component:
+
+- the current endpoint starts as public;
+- the next endpoint is prepared from a copied/migrated database;
+- `AskHandoverMarker` reads the current endpoint's schema and write marker;
+- `ReadyToHandover` is accepted only if the marker has not moved;
+- `HandoverCompleted` makes the current endpoint private-upgrade-only and
+  makes the next endpoint public;
+- mirrored writes use `VersionProjection<Source, Target>`;
+- writes that cannot be projected record typed `Divergence` payloads instead
+  of being silently dropped.
+
+The handover prototype gives the codebase a concrete place to test the
+protocol before the production daemon grows private upgrade sockets, active
+socket selection, and high-water-mark replay.
 
 ## Temporary CLI
 

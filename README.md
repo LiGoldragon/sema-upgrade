@@ -21,11 +21,17 @@ unsupported component/version pairs. The current migration reads the
 historical Spirit `Certainty` record shape and writes the current
 `Magnitude` record shape into a new database.
 
+`src/handover.rs` contains the first private-upgrade socket handover
+prototype. It uses `signal-version-handover` records for marker/readiness/
+completion/mirror/divergence messages and `version-projection` for per-type
+projection. The prototype is tested, but it is not yet wired into the
+production `persona-spirit` daemon sockets.
+
 For the live sandbox path, use the Nix app so the daemon, CLI, and
 migration tool are all selected by the flake:
 
 ```sh
-nix run --max-jobs 0 .#spirit-migration-sandbox -- /home/li/.local/state/persona-spirit/persona-spirit.redb
+nix run --option max-jobs 0 .#spirit-migration-sandbox -- /home/li/.local/state/persona-spirit/persona-spirit.redb
 ```
 
 The app copies the source database to a temporary directory, migrates the
@@ -37,7 +43,7 @@ For the persistent staging path, stop the target `v0.1.1` daemon first,
 then run:
 
 ```sh
-nix run --max-jobs 0 .#spirit-migration-stage -- \
+nix run --option max-jobs 0 .#spirit-migration-stage -- \
   /home/li/.local/state/persona-spirit/v0.1.0/persona-spirit.redb \
   /home/li/.local/state/persona-spirit/v0.1.1/persona-spirit.redb
 ```
