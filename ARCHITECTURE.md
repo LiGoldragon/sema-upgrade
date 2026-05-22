@@ -114,10 +114,12 @@ record before snapshot, migrates the snapshot to `v0.1.1`, starts a tagged
 selector from current to next, writes a `High` record through the next daemon,
 and verifies the current database did not receive that next-only write.
 
-This is still a sandbox witness, not production private-upgrade socket wiring.
-The Spirit daemons do not yet own `signal-version-handover` sockets directly;
-the app runs the protocol through `sema-upgrade-handover-temporary` while the
-two real Spirit daemon versions prove the database and CLI sides.
+This is still a sandbox witness, not the full production private-upgrade
+socket wiring. The next `persona-spirit` daemon version now owns a
+`signal-version-handover` upgrade socket for marker, readiness, and completion
+checks. The deployed `v0.1.0` daemon does not yet own that socket, so the app
+still runs the cross-version protocol through `sema-upgrade-handover-temporary`
+while the two real Spirit daemon versions prove the database and CLI sides.
 
 The flake also exposes `.#spirit-migration-stage` for the first persistent
 cutover. It takes a source `v0.1.0` database path and a target `v0.1.1`

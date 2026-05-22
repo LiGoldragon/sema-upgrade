@@ -81,6 +81,7 @@
             target_database="$work_directory/target-v0.1.1.redb"
             ordinary_socket="$work_directory/spirit.sock"
             owner_socket="$work_directory/owner.sock"
+            upgrade_socket="$work_directory/upgrade.sock"
             daemon_log="$work_directory/persona-spirit-daemon.log"
 
             cp --reflink=auto "$source_database" "$source_copy" 2>/dev/null || cp "$source_database" "$source_copy"
@@ -90,12 +91,12 @@
               > "$work_directory/migration.reply"
 
             "${persona-spirit.packages.${system}.persona-spirit-daemon}/bin/persona-spirit-daemon" \
-              "(\"$ordinary_socket\" \"$owner_socket\" \"$target_database\" 384 None)" \
+              "(\"$ordinary_socket\" \"$owner_socket\" \"$upgrade_socket\" \"$target_database\" 384 None)" \
               > "$daemon_log" 2>&1 &
             daemon_pid="$!"
 
             for _ in $(seq 1 100); do
-              if [ -S "$ordinary_socket" ] && [ -S "$owner_socket" ]; then
+              if [ -S "$ordinary_socket" ] && [ -S "$owner_socket" ] && [ -S "$upgrade_socket" ]; then
                 break
               fi
               if ! kill -0 "$daemon_pid" 2>/dev/null; then
@@ -106,7 +107,7 @@
               sleep 0.05
             done
 
-            if [ ! -S "$ordinary_socket" ] || [ ! -S "$owner_socket" ]; then
+            if [ ! -S "$ordinary_socket" ] || [ ! -S "$owner_socket" ] || [ ! -S "$upgrade_socket" ]; then
               echo "persona-spirit-daemon did not create sandbox sockets" >&2
               cat "$daemon_log" >&2
               exit 1
@@ -196,6 +197,7 @@
             probe_database="$stage_directory/probe-v0.1.1.redb"
             ordinary_socket="$stage_directory/spirit.sock"
             owner_socket="$stage_directory/owner.sock"
+            upgrade_socket="$stage_directory/upgrade.sock"
             daemon_log="$stage_directory/persona-spirit-daemon.log"
             backup_database=""
 
@@ -208,12 +210,12 @@
             cp --reflink=auto "$staged_database" "$probe_database" 2>/dev/null || cp "$staged_database" "$probe_database"
 
             "${persona-spirit.packages.${system}.persona-spirit-daemon}/bin/persona-spirit-daemon" \
-              "(\"$ordinary_socket\" \"$owner_socket\" \"$probe_database\" 384 None)" \
+              "(\"$ordinary_socket\" \"$owner_socket\" \"$upgrade_socket\" \"$probe_database\" 384 None)" \
               > "$daemon_log" 2>&1 &
             daemon_pid="$!"
 
             for _ in $(seq 1 100); do
-              if [ -S "$ordinary_socket" ] && [ -S "$owner_socket" ]; then
+              if [ -S "$ordinary_socket" ] && [ -S "$owner_socket" ] && [ -S "$upgrade_socket" ]; then
                 break
               fi
               if ! kill -0 "$daemon_pid" 2>/dev/null; then
@@ -224,7 +226,7 @@
               sleep 0.05
             done
 
-            if [ ! -S "$ordinary_socket" ] || [ ! -S "$owner_socket" ]; then
+            if [ ! -S "$ordinary_socket" ] || [ ! -S "$owner_socket" ] || [ ! -S "$upgrade_socket" ]; then
               echo "persona-spirit-daemon did not create staging sockets" >&2
               cat "$daemon_log" >&2
               exit 1
@@ -333,6 +335,7 @@
             current_owner_socket="$work_directory/current-owner.sock"
             next_ordinary_socket="$work_directory/next-spirit.sock"
             next_owner_socket="$work_directory/next-owner.sock"
+            next_upgrade_socket="$work_directory/next-upgrade.sock"
             current_daemon_log="$work_directory/current-daemon.log"
             next_daemon_log="$work_directory/next-daemon.log"
 
@@ -404,12 +407,12 @@
               > "$work_directory/migration.reply"
 
             "${persona-spirit.packages.${system}.persona-spirit-daemon}/bin/persona-spirit-daemon" \
-              "(\"$next_ordinary_socket\" \"$next_owner_socket\" \"$next_database\" 384 None)" \
+              "(\"$next_ordinary_socket\" \"$next_owner_socket\" \"$next_upgrade_socket\" \"$next_database\" 384 None)" \
               > "$next_daemon_log" 2>&1 &
             next_daemon_pid="$!"
 
             for _ in $(seq 1 100); do
-              if [ -S "$next_ordinary_socket" ] && [ -S "$next_owner_socket" ]; then
+              if [ -S "$next_ordinary_socket" ] && [ -S "$next_owner_socket" ] && [ -S "$next_upgrade_socket" ]; then
                 break
               fi
               if ! kill -0 "$next_daemon_pid" 2>/dev/null; then
@@ -420,7 +423,7 @@
               sleep 0.05
             done
 
-            if [ ! -S "$next_ordinary_socket" ] || [ ! -S "$next_owner_socket" ]; then
+            if [ ! -S "$next_ordinary_socket" ] || [ ! -S "$next_owner_socket" ] || [ ! -S "$next_upgrade_socket" ]; then
               echo "persona-spirit v0.1.1 daemon did not create sandbox sockets" >&2
               cat "$next_daemon_log" >&2
               exit 1
