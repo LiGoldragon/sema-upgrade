@@ -32,3 +32,18 @@ The app copies the source database to a temporary directory, migrates the
 copy, starts the tagged `persona-spirit` `v0.1.1` daemon on temporary
 sockets, queries it through the tagged `spirit` CLI, writes a sandbox-only
 `High` record, and verifies that record can be queried back.
+
+For the persistent staging path, stop the target `v0.1.1` daemon first,
+then run:
+
+```sh
+nix run --max-jobs 0 .#spirit-migration-stage -- \
+  /home/li/.local/state/persona-spirit/v0.1.0/persona-spirit.redb \
+  /home/li/.local/state/persona-spirit/v0.1.1/persona-spirit.redb
+```
+
+The staging app migrates into a same-directory temporary database, copies that
+database into a probe database, starts a tagged `persona-spirit` `v0.1.1`
+daemon against the probe, verifies queries and a `High` record there, backs up
+any existing target database, then atomically moves the unmodified staged
+database into the requested target path.

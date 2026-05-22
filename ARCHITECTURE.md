@@ -81,3 +81,17 @@ The sandbox proves four things without touching the live database:
 - the current Spirit CLI can observe migrated records through the daemon;
 - the widened `Magnitude::High` value can be written and queried on the
   migrated copy.
+
+The flake also exposes `.#spirit-migration-stage` for the first persistent
+cutover. It takes a source `v0.1.0` database path and a target `v0.1.1`
+database path. The target daemon must be stopped by the caller before the app
+runs. The app migrates into a same-directory temporary database, verifies a
+copy of that database through a tagged `v0.1.1` daemon and CLI, backs up the
+previous target database if one exists, and atomically renames the unmodified
+staged database into the target path.
+
+The staging app still does not solve live-copy delta replay. It is the
+stop-target half of the current transition: the old daemon can remain
+canonical while the new target database is staged, but any writes accepted by
+the old daemon after staging require another migration stage or a later
+high-water-mark replay mechanism.
