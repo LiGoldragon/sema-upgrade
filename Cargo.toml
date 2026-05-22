@@ -16,6 +16,10 @@ path = "src/lib.rs"
 name = "sema-upgrade-temporary"
 path = "src/bin/sema_upgrade_temporary.rs"
 
+[[bin]]
+name = "sema-upgrade-handover-temporary"
+path = "src/bin/sema_upgrade_handover_temporary.rs"
+
 [dependencies]
 nota-codec                = { git = "https://github.com/LiGoldragon/nota-codec.git", branch = "main" }
 owner-signal-sema-upgrade = { git = "https://github.com/LiGoldragon/owner-signal-sema-upgrade.git", branch = "main" }

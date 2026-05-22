@@ -39,6 +39,20 @@ copy, starts the tagged `persona-spirit` `v0.1.1` daemon on temporary
 sockets, queries it through the tagged `spirit` CLI, writes a sandbox-only
 `High` record, and verifies that record can be queried back.
 
+For the two-version smart-handover sandbox, use:
+
+```sh
+nix run --option max-jobs 0 .#spirit-smart-handover-sandbox -- /home/li/.local/state/persona-spirit/v0.1.0/persona-spirit.redb
+```
+
+The app copies the latest `v0.1.0` database into an isolated sandbox, starts
+the tagged `v0.1.0` daemon, writes a legacy-compatible record there, snapshots
+that database, migrates the snapshot to `v0.1.1`, starts the tagged `v0.1.1`
+daemon, runs the current `signal-version-handover` protocol prototype, flips
+the sandbox's public selector to the next daemon, writes a `High` record
+through `v0.1.1`, and verifies that the old database did not receive the
+next-only write.
+
 For the persistent staging path, stop the target `v0.1.1` daemon first,
 then run:
 

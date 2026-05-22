@@ -105,6 +105,20 @@ The sandbox proves four things without touching the live database:
 - the widened `Magnitude::High` value can be written and queried on the
   migrated copy.
 
+`.#spirit-smart-handover-sandbox` is the stronger two-version witness. It
+takes the current `v0.1.0` database path, copies it into an isolated sandbox,
+starts a tagged `v0.1.0` daemon against the copy, writes a legacy-compatible
+record before snapshot, migrates the snapshot to `v0.1.1`, starts a tagged
+`v0.1.1` daemon against the migrated copy, runs the
+`signal-version-handover` protocol prototype, switches the sandbox's public
+selector from current to next, writes a `High` record through the next daemon,
+and verifies the current database did not receive that next-only write.
+
+This is still a sandbox witness, not production private-upgrade socket wiring.
+The Spirit daemons do not yet own `signal-version-handover` sockets directly;
+the app runs the protocol through `sema-upgrade-handover-temporary` while the
+two real Spirit daemon versions prove the database and CLI sides.
+
 The flake also exposes `.#spirit-migration-stage` for the first persistent
 cutover. It takes a source `v0.1.0` database path and a target `v0.1.1`
 database path. The target daemon must be stopped by the caller before the app

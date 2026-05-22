@@ -100,13 +100,44 @@
         "type": "github"
       }
     },
+    "persona-spirit-v0-1-0": {
+      "inputs": {
+        "crane": [
+          "crane"
+        ],
+        "fenix": [
+          "fenix"
+        ],
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1779353631,
+        "narHash": "sha256-RCKyYs/TZhdpgJgczAtFxuzdSt9rEEP/W/ReXp2mk9s=",
+        "owner": "LiGoldragon",
+        "repo": "persona-spirit",
+        "rev": "694452add7734d0b00954a0d7d4d46bb5d776065",
+        "type": "github"
+      },
+      "original": {
+        "owner": "LiGoldragon",
+        "ref": "v0.1.0",
+        "repo": "persona-spirit",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "crane": "crane",
         "fenix": "fenix",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
-        "persona-spirit": "persona-spirit"
+        "persona-spirit": "persona-spirit",
+        "persona-spirit-v0-1-0": "persona-spirit-v0-1-0"
       }
     },
     "rust-analyzer-src": {
