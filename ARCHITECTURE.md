@@ -4,6 +4,17 @@
 It owns migration modules, the module index compiled into a given build,
 and the execution path for ordinary upgrade attempts.
 
+In the version-handover stack `sema-upgrade` plays two roles. First, it
+is the **protocol witness**: `src/handover.rs` carries a testable
+state-machine implementation of the `signal-version-handover` protocol
+that production daemons can model their wiring after. Second, it is
+the **end-to-end sandbox host**: Nix-owned apps in this repo prove the
+full migration + selector flip + cross-daemon write isolation slice
+against the live database without touching production state. The crate
+remains library-shaped today; a future `sema-upgrade-daemon` will own
+the persona engine's view of upgrade orchestration once the daemon
+shape settles.
+
 ## Constraints
 
 - The runtime uses `signal-sema-upgrade` for ordinary peer requests.
@@ -134,3 +145,32 @@ stop-target half of the current transition: the old daemon can remain
 canonical while the new target database is staged, but any writes accepted by
 the old daemon after staging require another migration stage or a later
 high-water-mark replay mechanism.
+
+## Possible features
+
+*Items here are under consideration, not committed. Each names the
+open question; moves to the cemented body when settled; retires when
+ruled out.*
+
+- **`sema-upgrade-daemon` as upgrade-orchestration daemon.** Today this
+  crate is library-only plus Nix-app sandboxes. The persona engine is
+  the planned upgrade orchestrator (owner of the active-version
+  selector and the start-handover order); whether `sema-upgrade` grows
+  its own daemon binary or whether orchestration logic moves into the
+  persona engine entirely is open. Lean: a `sema-upgrade-daemon`
+  emerges only if the orchestration responsibility separates from
+  per-engine concerns.
+- **Mirror payload application on the production private upgrade
+  socket.** The sandbox path proves migration, selector flip, and
+  cross-daemon write isolation, but it does not yet replay mirrored
+  write payloads through real daemon sockets. Production cutover
+  requires the next daemon to apply Mirror payloads through its
+  reverse projection and record `NotRepresentable` results as
+  `Divergence`. Open question: where the divergence sink lives in the
+  prototype before persona-introspect ships.
+- **Retiring `sema-upgrade-handover-temporary`.** The temporary
+  external protocol runner exists because the deployed `v0.1.0`
+  daemon does not yet own a private upgrade socket. Once `v0.1.0` is
+  retrofitted (maintenance build) or a protocol-aware `v0.1.0`
+  redeploys, the sandbox shifts to real daemon-to-daemon socket
+  exchanges and the temporary runner retires.
