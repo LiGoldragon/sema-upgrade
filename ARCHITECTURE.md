@@ -47,7 +47,30 @@ src/migrations/persona_spirit/version_0_1_0_to_0_1_1.rs
 The Rust module name is identifier-safe; the public contract still names
 the version range as `(0 1 0)` to `(0 1 1)`.
 
-The module carries two shapes:
+### Two-submodule migration pattern
+
+Every migration module under `src/migrations/<component>/version_X_Y_Z_to_X_Y_W.rs`
+follows the same two-submodule shape:
+
+- `mod historical` — **private reproduction** of the deployed old types,
+  copied byte-for-byte from the old signal contract. Each module owns
+  its own historical layout. Includes every type the historical record
+  depends on, even primitives that have not changed shape — rkyv
+  archived layout depends on the closure of dependent types, so the
+  layout has to be reproduced as a closed bundle.
+- `mod current_shape` — overrides **only the fields that changed**,
+  re-using the current public contract types for everything else.
+  `From<historical::X> for current_shape::X` composes a conversion
+  chain that the module's `run` function invokes per record.
+
+This pattern keeps each migration module self-contained: nothing breaks
+the migration when the current contract evolves further, and historical
+layouts stay frozen alongside the records they decode. Skill reference:
+`skills/spirit-cli.md` §"Substrate migration discipline".
+
+### First module — Spirit Certainty → Magnitude
+
+The Spirit module carries two shapes:
 
 - historical private storage wrappers matching the deployed
   `persona-spirit` `v0.1.0` database bytes;
