@@ -16,6 +16,9 @@ and the execution path for ordinary upgrade attempts.
 - Supported migrations are selected from a compile-time module index.
 - Database migrations write into a new target database path; the
   migration code never rewrites the source database in place.
+- Live migration smoke tests run through Nix apps or checks. The operator
+  does not hand-run the copy/migrate/daemon/CLI sequence as an ad-hoc shell
+  script.
 - Unsupported component/version pairs return `UpgradeRejected` through
   the contract reply, not a frame-level rejection.
 
@@ -60,3 +63,21 @@ For the Spirit upgrade:
 
 The CLI routes through the same compiled `MigrationIndex` as the runtime
 engine, then prints `UpgradeCompleted` or `UpgradeRejected` as NOTA.
+
+## Nix Live Sandbox
+
+The flake exposes `.#spirit-migration-sandbox` as the live smoke-test
+surface for the first Spirit migration. It takes one source database path,
+copies it into a temporary directory, runs `sema-upgrade-temporary`, starts
+the tagged `persona-spirit` `v0.1.1` daemon on temporary ordinary and owner
+sockets, and uses the tagged `spirit` CLI against those sockets.
+
+The sandbox proves four things without touching the live database:
+
+- the current live `v0.1.0` database copy can be decoded by the historical
+  migration shape;
+- the migration produces a `v0.1.1` redb readable by the current Spirit
+  daemon;
+- the current Spirit CLI can observe migrated records through the daemon;
+- the widened `Magnitude::High` value can be written and queried on the
+  migrated copy.

@@ -9,9 +9,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     crane.url = "github:ipetkov/crane";
+    persona-spirit = {
+      url = "github:LiGoldragon/persona-spirit?ref=v0.1.1";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+      inputs.fenix.follows = "fenix";
+      inputs.crane.follows = "crane";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, fenix, crane }:
+  outputs = { self, nixpkgs, flake-utils, fenix, crane, persona-spirit }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
@@ -34,9 +41,124 @@
           strictDeps = true;
         };
         cargoArtifacts = craneLib.buildDepsOnly commonArguments;
+        package = craneLib.buildPackage (commonArguments // { inherit cargoArtifacts; });
+        spiritMigrationSandbox = pkgs.writeShellApplication {
+          name = "spirit-migration-sandbox";
+          runtimeInputs = [ pkgs.coreutils pkgs.gnugrep ];
+          text = ''
+            set -euo pipefail
+
+            if [ "$#" -ne 1 ]; then
+              echo "usage: spirit-migration-sandbox <v0.1.0-persona-spirit.redb>" >&2
+              exit 2
+            fi
+
+            source_database="$1"
+            if [ ! -f "$source_database" ]; then
+              echo "source database does not exist: $source_database" >&2
+              exit 2
+            fi
+
+            work_directory="$(mktemp -d)"
+            daemon_pid=""
+            cleanup() {
+              if [ -n "$daemon_pid" ] && kill -0 "$daemon_pid" 2>/dev/null; then
+                kill "$daemon_pid" 2>/dev/null || true
+                wait "$daemon_pid" 2>/dev/null || true
+              fi
+              rm -rf "$work_directory"
+            }
+            trap cleanup EXIT
+
+            source_copy="$work_directory/source-v0.1.0.redb"
+            target_database="$work_directory/target-v0.1.1.redb"
+            ordinary_socket="$work_directory/spirit.sock"
+            owner_socket="$work_directory/owner.sock"
+            daemon_log="$work_directory/persona-spirit-daemon.log"
+
+            cp --reflink=auto "$source_database" "$source_copy" 2>/dev/null || cp "$source_database" "$source_copy"
+
+            "${package}/bin/sema-upgrade-temporary" \
+              "(Attempt (\"$source_copy\" \"$target_database\" (persona-spirit (0 1 0) (0 1 1))))" \
+              > "$work_directory/migration.reply"
+
+            "${persona-spirit.packages.${system}.persona-spirit-daemon}/bin/persona-spirit-daemon" \
+              "(\"$ordinary_socket\" \"$owner_socket\" \"$target_database\" 384 None)" \
+              > "$daemon_log" 2>&1 &
+            daemon_pid="$!"
+
+            for _ in $(seq 1 100); do
+              if [ -S "$ordinary_socket" ] && [ -S "$owner_socket" ]; then
+                break
+              fi
+              if ! kill -0 "$daemon_pid" 2>/dev/null; then
+                echo "persona-spirit-daemon exited before sockets were ready" >&2
+                cat "$daemon_log" >&2
+                exit 1
+              fi
+              sleep 0.05
+            done
+
+            if [ ! -S "$ordinary_socket" ] || [ ! -S "$owner_socket" ]; then
+              echo "persona-spirit-daemon did not create sandbox sockets" >&2
+              cat "$daemon_log" >&2
+              exit 1
+            fi
+
+            run_spirit() {
+              PERSONA_SPIRIT_SOCKET="$ordinary_socket" \
+              PERSONA_SPIRIT_OWNER_SOCKET="$owner_socket" \
+                "${persona-spirit.packages.${system}.spirit}/bin/spirit" "$1"
+            }
+
+            topics_reply="$(run_spirit '(Observe Topics)')"
+            case "$topics_reply" in
+              \(TopicsObserved*) ;;
+              *)
+                echo "unexpected topics reply: $topics_reply" >&2
+                exit 1
+                ;;
+            esac
+
+            records_reply="$(run_spirit '(Observe (Records (None None SummaryOnly)))')"
+            case "$records_reply" in
+              \(RecordsObserved*) ;;
+              *)
+                echo "unexpected records reply: $records_reply" >&2
+                exit 1
+                ;;
+            esac
+
+            accepted_reply="$(run_spirit '(Record (testing Constraint "sandbox accepts high magnitude" "migrated live database copy" High "sandbox high quote"))')"
+            case "$accepted_reply" in
+              \(RecordAccepted*) ;;
+              *)
+                echo "unexpected record reply: $accepted_reply" >&2
+                exit 1
+                ;;
+            esac
+
+            high_reply="$(run_spirit '(Observe (Records ((Some testing) (Some Constraint) SummaryOnly)))')"
+            echo "$high_reply" | grep -q '"sandbox accepts high magnitude"'
+            echo "$high_reply" | grep -q 'High'
+
+            printf '%s\n' "$(< "$work_directory/migration.reply")"
+            printf '%s\n' "$topics_reply"
+            printf '%s\n' "$accepted_reply"
+            printf '%s\n' "$high_reply"
+            printf '(SandboxMigrationSucceeded ("%s"))\n' "$source_database"
+          '';
+        };
       in
       {
-        packages.default = craneLib.buildPackage (commonArguments // { inherit cargoArtifacts; });
+        packages = {
+          default = package;
+          spirit-migration-sandbox = spiritMigrationSandbox;
+        };
+        apps.spirit-migration-sandbox = flake-utils.lib.mkApp {
+          drv = spiritMigrationSandbox;
+          name = "spirit-migration-sandbox";
+        };
         checks = {
           build = craneLib.cargoBuild (commonArguments // { inherit cargoArtifacts; });
           test = craneLib.cargoTest (commonArguments // { inherit cargoArtifacts; });

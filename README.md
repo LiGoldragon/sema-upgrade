@@ -20,3 +20,15 @@ The binary refuses missing source paths, existing target paths, and
 unsupported component/version pairs. The current migration reads the
 historical Spirit `Certainty` record shape and writes the current
 `Magnitude` record shape into a new database.
+
+For the live sandbox path, use the Nix app so the daemon, CLI, and
+migration tool are all selected by the flake:
+
+```sh
+nix run --max-jobs 0 .#spirit-migration-sandbox -- /home/li/.local/state/persona-spirit/persona-spirit.redb
+```
+
+The app copies the source database to a temporary directory, migrates the
+copy, starts the tagged `persona-spirit` `v0.1.1` daemon on temporary
+sockets, queries it through the tagged `spirit` CLI, writes a sandbox-only
+`High` record, and verifies that record can be queried back.
