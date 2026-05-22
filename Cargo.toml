@@ -12,15 +12,25 @@ publish      = false
 name = "sema_upgrade"
 path = "src/lib.rs"
 
+[[bin]]
+name = "sema-upgrade-temporary"
+path = "src/bin/sema_upgrade_temporary.rs"
+
 [dependencies]
+nota-codec                = { git = "https://github.com/LiGoldragon/nota-codec.git", branch = "main" }
 owner-signal-sema-upgrade = { git = "https://github.com/LiGoldragon/owner-signal-sema-upgrade.git", branch = "main" }
+rkyv                      = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
+sema                      = { git = "https://github.com/LiGoldragon/sema.git" }
+sema-engine               = { git = "https://github.com/LiGoldragon/sema-engine.git", branch = "main" }
 signal-executor           = { git = "https://github.com/LiGoldragon/signal-executor.git", branch = "main" }
 signal-frame              = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main" }
+signal-persona-spirit     = { git = "https://github.com/LiGoldragon/signal-persona-spirit.git", branch = "operator/spirit-response-protocol" }
 signal-sema               = { git = "https://github.com/LiGoldragon/signal-sema.git", branch = "main" }
 signal-sema-upgrade       = { git = "https://github.com/LiGoldragon/signal-sema-upgrade.git", branch = "main" }
 thiserror                 = "2"
 
 [dev-dependencies]
+tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt"] }
 
 [lints.rust]

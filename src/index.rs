@@ -1,7 +1,10 @@
+use std::path::{Path, PathBuf};
+
 use signal_sema_upgrade::{
     Attempt, Completion, ComponentName, MigrationIdentifier, Rejection, RejectionReason,
     SupportedMigration, Version,
 };
+use thiserror::Error;
 
 use crate::migrations;
 
@@ -20,6 +23,7 @@ impl ModuleResult {
 pub struct MigrationModule {
     supported: SupportedMigration,
     run: fn(&Attempt) -> Result<ModuleResult, RejectionReason>,
+    migrate_database: Option<fn(&DatabaseMigration) -> DatabaseMigrationResult<ModuleResult>>,
 }
 
 impl MigrationModule {
@@ -27,7 +31,19 @@ impl MigrationModule {
         supported: SupportedMigration,
         run: fn(&Attempt) -> Result<ModuleResult, RejectionReason>,
     ) -> Self {
-        Self { supported, run }
+        Self {
+            supported,
+            run,
+            migrate_database: None,
+        }
+    }
+
+    pub fn with_database_migration(
+        mut self,
+        migrate_database: fn(&DatabaseMigration) -> DatabaseMigrationResult<ModuleResult>,
+    ) -> Self {
+        self.migrate_database = Some(migrate_database);
+        self
     }
 
     pub fn supported(&self) -> &SupportedMigration {
@@ -53,6 +69,80 @@ impl MigrationModule {
             changed_records: result.changed_records,
         })
     }
+
+    pub fn migrate_database(
+        &self,
+        request: &DatabaseMigration,
+    ) -> DatabaseMigrationResult<Completion> {
+        if !self.matches(request.attempt()) {
+            return Err(DatabaseMigrationError::Rejected(rejection(
+                request.attempt(),
+                RejectionReason::ComponentMismatch,
+            )));
+        }
+        let migrate_database =
+            self.migrate_database
+                .ok_or(DatabaseMigrationError::NoDatabaseMigration {
+                    migration: self.supported.identifier.clone(),
+                })?;
+        let result = migrate_database(request)?;
+        Ok(Completion {
+            component: request.attempt.component.clone(),
+            source: request.attempt.source,
+            target: request.attempt.target,
+            migration: self.supported.identifier.clone(),
+            changed_records: result.changed_records,
+        })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DatabaseMigration {
+    attempt: Attempt,
+    source: PathBuf,
+    target: PathBuf,
+}
+
+impl DatabaseMigration {
+    pub fn new(attempt: Attempt, source: impl Into<PathBuf>, target: impl Into<PathBuf>) -> Self {
+        Self {
+            attempt,
+            source: source.into(),
+            target: target.into(),
+        }
+    }
+
+    pub fn attempt(&self) -> &Attempt {
+        &self.attempt
+    }
+
+    pub fn source(&self) -> &Path {
+        &self.source
+    }
+
+    pub fn target(&self) -> &Path {
+        &self.target
+    }
+}
+
+pub type DatabaseMigrationResult<T> = Result<T, DatabaseMigrationError>;
+
+#[derive(Debug, Error)]
+pub enum DatabaseMigrationError {
+    #[error("unsupported migration")]
+    UnsupportedMigration,
+    #[error("migration rejected: {0:?}")]
+    Rejected(Rejection),
+    #[error("migration {migration:?} has no database migration implementation")]
+    NoDatabaseMigration { migration: MigrationIdentifier },
+    #[error("source database does not exist: {0}")]
+    SourceMissing(PathBuf),
+    #[error("target database already exists: {0}")]
+    TargetAlreadyExists(PathBuf),
+    #[error("source and target database paths must differ: {0}")]
+    SameSourceAndTarget(PathBuf),
+    #[error("database migration failed: {0}")]
+    Failed(String),
 }
 
 #[derive(Debug, Clone)]
@@ -90,6 +180,15 @@ impl MigrationIndex {
         self.find(attempt)
             .ok_or_else(|| rejection(attempt, RejectionReason::UnsupportedMigration))
             .and_then(|module| module.run(attempt))
+    }
+
+    pub fn migrate_database(
+        &self,
+        request: &DatabaseMigration,
+    ) -> DatabaseMigrationResult<Completion> {
+        self.find(request.attempt())
+            .ok_or(DatabaseMigrationError::UnsupportedMigration)
+            .and_then(|module| module.migrate_database(request))
     }
 }
 

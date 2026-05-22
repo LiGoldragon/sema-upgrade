@@ -14,6 +14,8 @@ and the execution path for ordinary upgrade attempts.
 - Component-local commands project into `signal-sema` operation and
   outcome classifications for observation.
 - Supported migrations are selected from a compile-time module index.
+- Database migrations write into a new target database path; the
+  migration code never rewrites the source database in place.
 - Unsupported component/version pairs return `UpgradeRejected` through
   the contract reply, not a frame-level rejection.
 
@@ -27,3 +29,34 @@ src/migrations/persona_spirit/version_0_1_0_to_0_1_1.rs
 
 The Rust module name is identifier-safe; the public contract still names
 the version range as `(0 1 0)` to `(0 1 1)`.
+
+The module carries two shapes:
+
+- historical private storage wrappers matching the deployed
+  `persona-spirit` `v0.1.0` database bytes;
+- current storage wrappers matching the next Spirit store shape where
+  `Entry.certainty` is `signal-sema::Magnitude`.
+
+The migration reads every historical record from the `records` table,
+maps `Certainty::Maximum | Medium | Minimum` into
+`Magnitude::Maximum | Medium | Minimum`, preserves identifiers and
+daemon-stamped date/time, and asserts the converted records into a fresh
+target database.
+
+## Temporary CLI
+
+`sema-upgrade-temporary` is not the final daemon client. It is a
+one-argument migration utility for the first live upgrade. Its input is:
+
+```text
+(Attempt (<source-path> <target-path> (<component> <source-version> <target-version>)))
+```
+
+For the Spirit upgrade:
+
+```text
+(Attempt (/tmp/persona-spirit-v0.1.0.redb /tmp/persona-spirit-v0.1.1.redb (persona-spirit (0 1 0) (0 1 1))))
+```
+
+The CLI routes through the same compiled `MigrationIndex` as the runtime
+engine, then prints `UpgradeCompleted` or `UpgradeRejected` as NOTA.

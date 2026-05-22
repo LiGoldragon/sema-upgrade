@@ -9,4 +9,7 @@ pub mod index;
 pub mod migrations;
 
 pub use execution::{Command, Effect, Engine, EngineError, Lowering, first_reply};
-pub use index::{MigrationIndex, MigrationModule, ModuleResult};
+pub use index::{
+    DatabaseMigration, DatabaseMigrationError, DatabaseMigrationResult, MigrationIndex,
+    MigrationModule, ModuleResult,
+};
