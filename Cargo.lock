@@ -444,7 +444,6 @@ dependencies = [
  "signal-persona-spirit",
  "signal-sema 0.1.0 (git+https://github.com/LiGoldragon/signal-sema.git?branch=main)",
  "signal-sema-upgrade",
- "signal-version-handover",
  "tempfile",
  "thiserror",
  "tokio",
@@ -594,18 +593,6 @@ dependencies = [
  "signal-frame",
  "signal-sema 0.1.0 (git+https://github.com/LiGoldragon/signal-sema.git?branch=main)",
  "thiserror",
-]
-
-[[package]]
-name = "signal-version-handover"
-version = "0.1.0"
-source = "git+https://github.com/LiGoldragon/signal-version-handover.git?branch=main#f2dfe3b48261bdf933dc24a8980dac2b39f3e319"
-dependencies = [
- "nota-codec",
- "rkyv",
- "signal-frame",
- "thiserror",
- "version-projection",
 ]
 
 [[package]]

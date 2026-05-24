@@ -70,74 +70,12 @@
         "type": "github"
       }
     },
-    "persona-spirit": {
-      "inputs": {
-        "crane": [
-          "crane"
-        ],
-        "fenix": [
-          "fenix"
-        ],
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1779465670,
-        "narHash": "sha256-aMxbOBuApugmhn52MBiT/sLJiiBmnzeSE5TOZW5DntY=",
-        "owner": "LiGoldragon",
-        "repo": "persona-spirit",
-        "rev": "40c0c93e35d1de89326faec81638ea8bdb2a876d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LiGoldragon",
-        "ref": "v0.1.1",
-        "repo": "persona-spirit",
-        "type": "github"
-      }
-    },
-    "persona-spirit-v0-1-0": {
-      "inputs": {
-        "crane": [
-          "crane"
-        ],
-        "fenix": [
-          "fenix"
-        ],
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1779353631,
-        "narHash": "sha256-RCKyYs/TZhdpgJgczAtFxuzdSt9rEEP/W/ReXp2mk9s=",
-        "owner": "LiGoldragon",
-        "repo": "persona-spirit",
-        "rev": "694452add7734d0b00954a0d7d4d46bb5d776065",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LiGoldragon",
-        "ref": "v0.1.0",
-        "repo": "persona-spirit",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "crane": "crane",
         "fenix": "fenix",
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs",
-        "persona-spirit": "persona-spirit",
-        "persona-spirit-v0-1-0": "persona-spirit-v0-1-0"
+        "nixpkgs": "nixpkgs"
       }
     },
     "rust-analyzer-src": {
