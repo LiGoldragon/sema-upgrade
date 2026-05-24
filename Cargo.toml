@@ -5,7 +5,7 @@ edition      = "2024"
 rust-version = "1.85"
 license      = "MIT OR Apache-2.0"
 repository   = "https://github.com/LiGoldragon/sema-upgrade"
-description  = "Runtime prototype for Sema database schema upgrades."
+description  = "Retired prototype crate for Sema database schema upgrades."
 publish      = false
 
 [lib]
@@ -13,22 +13,6 @@ name = "sema_upgrade"
 path = "src/lib.rs"
 
 [dependencies]
-nota-codec                = { git = "https://github.com/LiGoldragon/nota-codec.git", branch = "main" }
-owner-signal-sema-upgrade = { git = "https://github.com/LiGoldragon/owner-signal-sema-upgrade.git", branch = "main" }
-rkyv                      = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
-sema                      = { git = "https://github.com/LiGoldragon/sema.git" }
-sema-engine               = { git = "https://github.com/LiGoldragon/sema-engine.git", branch = "main" }
-signal-executor           = { git = "https://github.com/LiGoldragon/signal-executor.git", branch = "main" }
-signal-frame              = { git = "https://github.com/LiGoldragon/signal-frame.git", branch = "main" }
-signal-persona-spirit     = { git = "https://github.com/LiGoldragon/signal-persona-spirit.git", branch = "main" }
-signal-sema               = { git = "https://github.com/LiGoldragon/signal-sema.git", branch = "main" }
-signal-sema-upgrade       = { git = "https://github.com/LiGoldragon/signal-sema-upgrade.git", branch = "main" }
-thiserror                 = "2"
-version-projection        = { git = "https://github.com/LiGoldragon/version-projection.git", branch = "main" }
-
-[dev-dependencies]
-tempfile = "3"
-tokio = { version = "1", features = ["macros", "rt"] }
 
 [lints.rust]
 unsafe_code = "forbid"

@@ -1,15 +1,26 @@
-//! Runtime prototype for Sema schema upgrades.
+//! Retired prototype crate for Sema schema upgrades.
 //!
-//! The library wires the ordinary `signal-sema-upgrade` contract through
-//! `signal-executor`. The first migration is a compile-time module for
-//! `persona-spirit` `0.1.0` to `0.1.1`.
+//! The migration catalogue, executor, and handover driver moved to the
+//! `upgrade` triad during the `/318` upgrade merger. This crate remains
+//! only as an explicit breadcrumb for old pins and documentation links.
 
-pub mod execution;
-pub mod index;
-pub mod migrations;
+pub const RETIRED_BY_CRATE: &str = "upgrade";
+pub const RETIRED_BY_REPOSITORY: &str = "https://github.com/LiGoldragon/upgrade";
 
-pub use execution::{Command, Effect, Engine, EngineError, Lowering, first_reply};
-pub use index::{
-    DatabaseMigration, DatabaseMigrationError, DatabaseMigrationResult, MigrationIndex,
-    MigrationModule, ModuleResult,
-};
+pub fn retired_by_crate() -> &'static str {
+    RETIRED_BY_CRATE
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn retired_crate_points_to_upgrade() {
+        assert_eq!(retired_by_crate(), "upgrade");
+        assert_eq!(
+            RETIRED_BY_REPOSITORY,
+            "https://github.com/LiGoldragon/upgrade"
+        );
+    }
+}
