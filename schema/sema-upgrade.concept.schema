@@ -1,0 +1,54 @@
+{}
+
+[
+  (Inspect [All Component])
+  (AttemptUpgrade [Migration])
+  (Report [All Component])
+  (Handover [AskMarker Ready Completed Recover])
+  (Mirror [Payload])
+  (Divergence [Payload])
+]
+
+[
+  (Register [Migration])
+  (Policy [Allow Block Query])
+  (Selector [ForceFlip Rollback Quarantine])
+]
+
+[]
+
+{
+  Inspect [(All All) (Component Component)]
+  AttemptUpgrade [(Migration Migration)]
+  Report [(All All) (Component Component)]
+  Handover [(AskMarker AskMarker) (Ready Ready) (Completed Completed) (Recover Recover)]
+  Mirror [(Payload Payload)]
+  Divergence [(Payload Payload)]
+  Register [(Migration Migration)]
+  Policy [(Allow Allow) (Block Block) (Query Query)]
+  Selector [(ForceFlip ForceFlip) (Rollback Rollback) (Quarantine Quarantine)]
+  All (Text)
+  Component (Name)
+  Migration (Name)
+  AskMarker (Name)
+  Ready (Name)
+  Completed (Name)
+  Recover (Name)
+  Payload (Text)
+  Allow (Name)
+  Block (Name)
+  Query (Name)
+  ForceFlip (Name)
+  Rollback (Name)
+  Quarantine (Name)
+  Text (String)
+  Identifier (u64)
+  Name (String)
+  Path (String)
+  Status [Concept Active Retired]
+}
+
+[
+  (Version 0 1)
+  (Status Concept)
+]
